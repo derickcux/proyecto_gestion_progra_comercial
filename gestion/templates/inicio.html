@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+
+<style>
+    .card-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+    .icon-large {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+    /* Decoración del banner */
+    .hero-banner {
+        background: linear-gradient(45deg, #212529, #343a40);
+        color: white;
+    }
+</style>
+
+<div class="p-5 mb-5 rounded-3 hero-banner shadow text-center">
+    <h1 class="display-4 fw-bold">Sistema de Gestión Empresarial</h1>
+    <p class="lead my-3">Bienvenido, <strong>{{ user.username|default:'Usuario' }}</strong>. ¿Qué deseas gestionar hoy?</p>
+</div>
+
+<div class="row g-4">
+    
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 card-hover">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-cart-check-fill icon-large text-primary"></i>
+                <h5 class="card-title fw-bold text-secondary">Ventas</h5>
+                <p class="card-text small text-muted">Registrar salidas y pedidos.</p>
+                <a href="{% url 'lista_ventas' %}" class="btn btn-outline-primary btn-sm w-100 stretched-link">Ir a Ventas</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 card-hover">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-bag-plus-fill icon-large text-success"></i>
+                <h5 class="card-title fw-bold text-secondary">Compras</h5>
+                <p class="card-text small text-muted">Reabastecer inventario.</p>
+                <a href="{% url 'lista_compras' %}" class="btn btn-outline-success btn-sm w-100 stretched-link">Ir a Compras</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 card-hover">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-box-seam-fill icon-large text-info"></i>
+                <h5 class="card-title fw-bold text-secondary">Productos</h5>
+                <p class="card-text small text-muted">Catálogo y existencias.</p>
+                <a href="{% url 'lista_productos' %}" class="btn btn-outline-info btn-sm w-100 stretched-link">Ver Inventario</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 card-hover">
+            <div class="card-body text-center p-4">
+                <i class="bi bi-graph-up-arrow icon-large text-warning"></i>
+                <h5 class="card-title fw-bold text-secondary">Estadísticas</h5>
+                <p class="card-text small text-muted">Gráficos y Reportes.</p>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-warning btn-sm w-100 stretched-link">Ver Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12"><hr class="text-muted"></div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 card-hover flex-row align-items-center p-3">
+            <div class="p-3"><i class="bi bi-people-fill fs-1 text-primary"></i></div>
+            <div>
+                <h5 class="mb-1 fw-bold">Directorio de Clientes</h5>
+                <a href="{% url 'lista_clientes' %}" class="text-decoration-none stretched-link">Administrar clientes &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 card-hover flex-row align-items-center p-3">
+            <div class="p-3"><i class="bi bi-truck fs-1 text-success"></i></div>
+            <div>
+                <h5 class="mb-1 fw-bold">Directorio de Proveedores</h5>
+                <a href="{% url 'lista_proveedores' %}" class="text-decoration-none text-success stretched-link">Administrar proveedores &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ titulo }}</title>
+    <style>
+        /* configuracion de pagina */
+        @page {
+            size: letter;
+            margin: 2cm;
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+        /* tipografía general */
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 11pt;
+            color: #333333;
+        }
+
+        /* encabezado del reporte */
+        .header-container {
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0d6efd;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #0d6efd;
+            font-size: 22pt;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .meta-info {
+            color: #666;
+            font-size: 10pt;
+            margin-top: 5px;
+        }
+
+        /* tabla de datos */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th {
+            background-color: #0d6efd;
+            color: #ffffff;
+            font-weight: bold;
+            padding: 8px;
+            border: 1px solid #0056b3;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #dee2e6;
+            padding: 6px;
+            vertical-align: middle;
+            font-size: 10pt;
+        }
+
+        /* alineaciones */
+        .text-right { text-align: right; }   /* para dinero */
+        .text-center { text-align: center; } /* para fechas y códigos */
+        .text-left { text-align: left; }     /* para nombres */
+
+        /* pie de pagina */
+        #footerContent {
+            text-align: right;
+            font-size: 9pt;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>{{ titulo }}</h1>
+        <div class="meta-info">
+            Sistema de Gestión Empresarial &bull; Generado: {% now "d/m/Y H:i" %}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                {% if tipo == 'venta' %}
+                    <th width="15%">Pedido</th>
+                    <th width="20%">Fecha</th>
+                    <th width="30%">Cliente</th>
+                    <th width="20%">Total</th>
+                    <th width="15%">Estado</th>
+                {% elif tipo == 'compra' %}
+                    <th width="15%">Orden</th>
+                    <th width="20%">Fecha</th>
+                    <th width="30%">Proveedor</th>
+                    <th width="20%">Total</th>
+                    <th width="15%">Estado</th>
+                {% elif tipo == 'inventario' %}
+                    <th width="15%">Código</th>
+                    <th width="35%">Producto</th>
+                    <th width="20%">Categoría</th>
+                    <th width="15%">Precio</th>
+                    <th width="15%">Stock</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                {% if tipo == 'venta' %}
+                    <td class="text-center">{{ item.numero_pedido }}</td>
+                    <td class="text-center">{{ item.fecha|date:"d/m/Y" }}</td>
+                    <td class="text-left">{{ item.cliente.nombre }}</td>
+                    <td class="text-right">Q{{ item.total }}</td>
+                    <td class="text-center">{{ item.get_estado_display }}</td>
+                {% elif tipo == 'compra' %}
+                    <td class="text-center">{{ item.numero_orden }}</td>
+                    <td class="text-center">{{ item.fecha|date:"d/m/Y" }}</td>
+                    <td class="text-left">{{ item.proveedor.empresa }}</td>
+                    <td class="text-right">Q{{ item.total }}</td>
+                    <td class="text-center">{{ item.get_estado_display }}</td>
+                {% elif tipo == 'inventario' %}
+                    <td class="text-center">{{ item.codigo }}</td>
+                    <td class="text-left">{{ item.nombre }}</td>
+                    <td class="text-center">{{ item.categoria.nombre }}</td>
+                    <td class="text-right">Q{{ item.precio_venta }}</td>
+                    <td class="text-center">{{ item.cantidad }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="footerContent">
+        Página <pdf:pagenumber>
+    </div>
+
+</body>
+</html>

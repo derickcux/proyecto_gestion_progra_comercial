@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block contenido %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row mb-3">
+    <div class="col-md-8">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-light">
+                <div class="row">
+                    <div class="col"><strong>Orden:</strong> {{ compra.numero_orden }}</div>
+                    <div class="col text-end"><strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h3 class="text-success">{{ compra.proveedor.empresa }}</h3>
+                <p class="mb-0 text-muted">Total Orden: <span class="fs-4 text-dark fw-bold">Q{{ total }}</span></p>
+            </div>
+        </div>
+
+        <div class="card shadow border-0">
+            <table class="table table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Producto</th>
+                        <th>Cant.</th>
+                        <th>Costo Unit.</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                    <tr>
+                        <td class="ps-3">{{ detalle.producto.nombre }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>Q{{ detalle.costo_unitario }}</td>
+                        <td class="fw-bold">Q{% widthratio detalle.cantidad 1 detalle.costo_unitario %}</td>
+                        <td>
+                            {% if compra.estado == 'pendiente' %}
+                            <a href="{% url 'eliminar_detalle_compra' detalle.id %}" class="text-danger" title="Quitar">
+                                <i class="bi bi-trash"></i> X
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No hay productos en esta orden.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        {% if compra.estado == 'pendiente' %}
+        <div class="card shadow bg-white border-success mb-4">
+            <div class="card-header bg-success text-white">Agregar Producto</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-success">+ Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <a href="{% url 'finalizar_compra' compra.id %}" class="btn btn-success btn-lg">
+                Recibir Mercadería
+            </a>
+            
+            <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#modalCancelarCompra">
+                Cancelar Orden
+            </button>
+        </div>
+        
+        <!-- Modal Cancelar -->
+        <div class="modal fade" id="modalCancelarCompra" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">¿Cancelar Orden?</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Deseas cancelar la orden <strong>{{ compra.numero_orden }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Regresar</button>
+                        <a href="{% url 'cancelar_compra' compra.id %}" class="btn btn-danger">Sí, Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="alert {% if compra.estado == 'recibida' %}alert-success{% else %}alert-danger{% endif %} text-center">
+            <h4>Orden {{ compra.get_estado_display }}</h4>
+            <p>Esta orden ya está cerrada.</p>
+            <a href="{% url 'lista_compras' %}" class="btn btn-outline-secondary">Volver a la lista</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

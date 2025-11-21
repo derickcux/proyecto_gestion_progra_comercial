@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-primary"><i class="bi bi-bar-chart-line"></i> Reporte de Ventas</h2>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4 bg-light">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end" id="filterForm">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Desde:</label>
+                {{ filtro.form.start_date }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Hasta:</label>
+                {{ filtro.form.end_date }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Cliente:</label>
+                {{ filtro.form.cliente }}
+            </div>
+            
+            <div class="col-md-2 d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search">Filtrar</i>
+                </button>
+                <a href="{% url 'reporte_ventas' %}" class="btn btn-outline-secondary" title="Limpiar Filtros">
+                    <i class="bi bi-x-lg">Limpiar</i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12 text-end">
+        <button type="submit" name="export" value="pdf" form="filterForm" class="btn btn-outline-danger me-2">
+            <i class="bi bi-file-pdf"></i> Descargar PDF
+        </button>
+        <button type="submit" name="export" value="csv" form="filterForm" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
+        </button>
+    </div>
+</div>
+
+<div class="card shadow border-0">
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Pedido</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td class="fw-bold">{{ venta.numero_pedido }}</td>
+                    <td>{{ venta.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ venta.cliente.nombre }}</td>
+                    <td>Q{{ venta.total }}</td>
+                    <td>{{ venta.get_estado_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4">No se encontraron ventas con estos filtros.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

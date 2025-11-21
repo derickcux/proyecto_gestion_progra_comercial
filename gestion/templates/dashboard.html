@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-primary">Tablero de Estadísticas</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ventas Mensuales (Q)</h6>
+            </div>
+            <div class="card-body">
+                <div style="height: 350px;"> 
+                    <canvas id="chartVentas"></canvas> 
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">Top 5 Productos</h6>
+            </div>
+            <div class="card-body">
+                <div style="height: 350px;">
+                    <canvas id="chartProductos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- grafico de ventas ---
+    const ctxVentas = document.getElementById('chartVentas');
+    new Chart(ctxVentas, {
+        type: 'bar',
+        data: {
+            labels: {{ meses_label|safe }},
+            datasets: [{
+                label: 'Total Vendido (Q)',
+                data: {{ montos_data|safe }},
+                backgroundColor: '#0d6efd',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // --- grafico de pr oductos ---
+    const ctxProd = document.getElementById('chartProductos');
+    new Chart(ctxProd, {
+        type: 'doughnut',
+        data: {
+            labels: {{ prod_labels|safe }},
+            datasets: [{
+                label: 'Unidades Vendidas',
+                data: {{ prod_data|safe }},
+                backgroundColor: [
+                    '#198754', '#ffc107', '#0dcaf0', '#dc3545', '#6c757d'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            responsive: true,
+        }
+    });
+</script>
+{% endblock %}

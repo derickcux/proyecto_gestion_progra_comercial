@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h2 class="fw-bold text-secondary">Categorías de Productos</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{% url 'crear_categoria' %}" class="btn btn-secondary shadow-sm">
+            <span class="fw-bold">+ Nueva Categoría</span>
+        </a>
+    </div>
+</div>
+
+<div class="card shadow border-0">
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th class="ps-4">Nombre de la Categoría</th>
+                    <th class="text-center" style="width: 200px;">Acciones</th> </tr>
+            </thead>
+            <tbody>
+                {% for categoria in categorias %}
+                <tr>
+                    <td class="ps-4 fw-bold">{{ categoria.nombre }}</td>
+                    <td class="text-center">
+                        <a href="{% url 'editar_categoria' categoria.id %}" class="btn btn-sm btn-outline-secondary me-1">
+                            Editar
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEliminar{{ categoria.id }}">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="modalEliminar{{ categoria.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">¿Eliminar Categoría?</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body text-start">
+                        <p>Vas a eliminar: <strong>{{ categoria.nombre }}</strong></p>
+                        <p class="text-muted small mb-0">Cuidado: Los productos que tengan esta categoría podrían quedar sin clasificación.</p>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <form action="{% url 'eliminar_categoria' categoria.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center py-4 text-muted">No hay categorías registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'lista_productos' %}" class="btn btn-secondary">
+        &larr; Ir a Productos
+    </a>
+</div>
+{% endblock %}

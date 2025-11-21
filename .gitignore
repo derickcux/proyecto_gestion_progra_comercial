@@ -1,0 +1,22 @@
+#archivos compilados
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+#bd
+db.sqlite3
+
+#entornos virtuales
+venv/
+env/
+venv_gestion_empresarial/
+
+#variables de entorno
+.env
+
+#archivos del sistema
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

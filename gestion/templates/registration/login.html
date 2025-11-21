@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block navbar %}{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center align-items-center" style="height: 80vh;">
+    <div class="col-md-4">
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-header bg-primary text-white text-center py-4 rounded-top">
+                <h3 class="fw-bold my-1">Bienvenido</h3>
+                <p class="mb-0 small text-white-50">Inicia sesión para continuar</p>
+            </div>
+            <div class="card-body p-5">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold">Ingresar</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3 bg-light">
+                <small class="text-muted">Derick Cux, Marco Méndez - Noviembre 2025</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

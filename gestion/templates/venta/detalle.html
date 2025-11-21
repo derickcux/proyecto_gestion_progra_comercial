@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block contenido %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row mb-3">
+    <div class="col-md-8">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-light">
+                <div class="row">
+                    <div class="col"><strong>Pedido:</strong> {{ venta.numero_pedido }}</div>
+                    <div class="col text-end"><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h3 class="text-primary">{{ venta.cliente.nombre }}</h3>
+                <p class="mb-0 text-muted">Total Actual: <span class="fs-4 text-dark fw-bold">Q{{ total }}</span></p>
+            </div>
+        </div>
+
+        <div class="card shadow border-0">
+            <table class="table table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Producto</th>
+                        <th>Cant.</th>
+                        <th>Precio Unit.</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                    <tr>
+                        <td class="ps-3">{{ detalle.producto.nombre }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>Q{{ detalle.precio_unitario }}</td>
+                        <td class="fw-bold">Q{{ detalle.subtotal }}</td>
+                        <td>
+                            {% if venta.estado == 'pendiente' %}
+                            <a href="{% url 'eliminar_detalle_venta' detalle.id %}" class="text-danger" title="Quitar">
+                                <i class="bi bi-trash"></i> X
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">Aún no hay productos en este pedido.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        {% if venta.estado == 'pendiente' %}
+        <div class="card shadow bg-white border-primary mb-4"> <div class="card-header bg-primary text-white">Agregar Producto</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">+ Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <a href="{% url 'finalizar_venta' venta.id %}" class="btn btn-success btn-lg">
+                Finalizar Venta
+            </a>
+            
+            <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#modalCancelarVenta">
+                Cancelar Venta
+            </button>
+        </div>
+        
+        <div class="modal fade" id="modalCancelarVenta" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">¿Anular Pedido?</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que deseas cancelar la venta <strong>{{ venta.numero_pedido }}</strong>?</p>
+                        <p class="text-muted small">El estado cambiará a "Cancelado" y no podrás editarla más.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, regresar</button>
+                        <a href="{% url 'cancelar_venta' venta.id %}" class="btn btn-danger">Sí, Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="alert {% if venta.estado == 'completado' %}alert-success{% else %}alert-danger{% endif %} text-center">
+            <h4>Venta {{ venta.get_estado_display }}</h4>
+            <p>Este pedido ya está cerrado.</p>
+            <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">Volver a la lista</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

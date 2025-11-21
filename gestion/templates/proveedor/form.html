@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white"> <h4 class="mb-0">
+                    {% if form.instance.pk %}
+                        Editar Proveedor
+                    {% else %}
+                        Registrar Nuevo Proveedor
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success"> {% if form.instance.pk %}
+                                Guardar cambios
+                            {% else %}
+                                Guardar Proveedor
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'lista_proveedores' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
