@@ -1,5 +1,15 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from . import views, api_views
+from rest_framework.routers import DefaultRouter
+
+#configuracion del router para la API REST
+router = DefaultRouter()
+router.register(r'clientes', api_views.ClienteViewSet)
+router.register(r'proveedores', api_views.ProveedorViewSet)
+router.register(r'categorias', api_views.CategoriaViewSet)
+router.register(r'productos', api_views.ProductoViewSet)
+router.register(r'ventas', api_views.VentaViewSet)
+router.register(r'compras', api_views.CompraViewSet)
 
 urlpatterns = [
     path('', views.inicio, name='inicio'),
@@ -51,4 +61,7 @@ urlpatterns = [
 
     #dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
+
+    #API REST
+    path('api/', include(router.urls)),
 ]
