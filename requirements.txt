@@ -7,6 +7,7 @@ charset-normalizer==3.4.4
 crispy-bootstrap5==2025.6
 cryptography==46.0.3
 cssselect2==0.8.0
+dj-database-url==3.0.1
 Django==5.2.8
 django-crispy-forms==2.5
 django-filter==25.2
@@ -36,4 +37,5 @@ tzlocal==5.3.1
 uritools==5.0.0
 urllib3==2.5.0
 webencodings==0.5.1
+whitenoise==6.11.0
 xhtml2pdf==0.2.17
