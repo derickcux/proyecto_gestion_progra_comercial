@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
-from .models import Cliente, Proveedor, Producto, Categoria, Venta, DetalleVenta, Compra, DetalleCompra
+from .models import Cliente, Proveedor, Producto, Categoria, Venta, DetalleVenta, Compra, DetalleCompra, MovimientoInventario
 from .forms import ClienteForm, ProveedorForm, ProductoForm, CategoriaForm, VentaForm, DetalleVentaForm, CompraForm, DetalleCompraForm
 from django.db.models import Sum
 from django.contrib import messages
@@ -260,21 +260,29 @@ def finalizar_venta(request, id):
     if venta.estado == 'pendiente':
         detalles = DetalleVenta.objects.filter(venta=venta)
         
-        #validar que alcance el inventario para todos los productos
+        # Validación de stock... (tu código existente sigue igual)
         for detalle in detalles:
             if detalle.producto.cantidad < detalle.cantidad:
-                messages.error(request, f"Error: No hay suficiente stock de {detalle.producto.nombre}. Tienes {detalle.producto.cantidad} y quieres vender {detalle.cantidad}.")
+                messages.error(request, f"Error: No hay suficiente stock...")
                 return redirect('detalle_venta', id=id)
 
-        #si pasa la validacion, se descuenta el stock
+        #restar inventario y registrar movimiento
         for detalle in detalles:
             producto = detalle.producto
             producto.cantidad -= detalle.cantidad
-            producto.save() #guardar el nuevo stock en BD
+            producto.save()
+            
+            MovimientoInventario.objects.create(
+                tipo='salida',
+                producto=producto,
+                cantidad=detalle.cantidad,
+                venta_asociada=venta
+            )
+            # --------------------------------------
 
         venta.estado = 'completado'
         venta.save()
-        messages.success(request, 'Venta finalizada y stock actualizado.')
+        messages.success(request, 'Venta finalizada, stock actualizado y movimiento registrado.')
         
     return redirect('lista_ventas')
 
@@ -390,7 +398,6 @@ def finalizar_compra(request, id):
         compra.estado = 'recibida'
         compra.save()
         
-        #suma el stock de los productos comprados al inventario
         detalles = DetalleCompra.objects.filter(compra=compra)
         for detalle in detalles:
             producto = detalle.producto
@@ -398,7 +405,16 @@ def finalizar_compra(request, id):
             producto.precio_compra = detalle.costo_unitario
             producto.save()
             
-        messages.success(request, 'Compra recibida y stock actualizado.')
+            #guardar en el historial de movimientos
+            MovimientoInventario.objects.create(
+                tipo='entrada',
+                producto=producto,
+                cantidad=detalle.cantidad,
+                compra_asociada=compra
+            )
+            # --------------------------------------
+            
+        messages.success(request, 'Compra recibida y movimientos registrados.')
     return redirect('lista_compras')
 
 @login_required

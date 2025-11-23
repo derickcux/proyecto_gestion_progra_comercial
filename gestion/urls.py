@@ -10,6 +10,7 @@ router.register(r'categorias', api_views.CategoriaViewSet)
 router.register(r'productos', api_views.ProductoViewSet)
 router.register(r'ventas', api_views.VentaViewSet)
 router.register(r'compras', api_views.CompraViewSet)
+router.register(r'movimientos', api_views.MovimientoViewSet)
 
 urlpatterns = [
     path('', views.inicio, name='inicio'),

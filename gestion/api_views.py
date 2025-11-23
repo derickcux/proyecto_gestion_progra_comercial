@@ -1,8 +1,8 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from .models import Cliente, Proveedor, Categoria, Producto, Venta, Compra
+from .models import Cliente, Proveedor, Categoria, Producto, Venta, Compra, MovimientoInventario
 from .serializers import (
     ClienteSerializer, ProveedorSerializer, CategoriaSerializer, 
-    ProductoSerializer, VentaSerializer, CompraSerializer
+    ProductoSerializer, VentaSerializer, CompraSerializer, MovimientoSerializer
 )
 
 #viewsets (controladores automaticos de la API REST)
@@ -29,3 +29,7 @@ class VentaViewSet(ReadOnlyModelViewSet):
 class CompraViewSet(ReadOnlyModelViewSet):
     queryset = Compra.objects.all().order_by('-fecha')
     serializer_class = CompraSerializer
+
+class MovimientoViewSet(ReadOnlyModelViewSet):
+    queryset = MovimientoInventario.objects.all().order_by('-fecha')
+    serializer_class = MovimientoSerializer

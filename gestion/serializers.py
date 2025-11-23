@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cliente, Proveedor, Categoria, Producto, Venta, Compra, DetalleVenta, DetalleCompra
+from .models import Cliente, Proveedor, Categoria, Producto, Venta, Compra, DetalleVenta, DetalleCompra, MovimientoInventario
 
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,4 +56,13 @@ class CompraSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Compra
+        fields = '__all__'
+
+class MovimientoSerializer(serializers.ModelSerializer):
+    producto_nombre = serializers.ReadOnlyField(source='producto.nombre')
+    venta_numero = serializers.ReadOnlyField(source='venta_asociada.numero_pedido')
+    compra_numero = serializers.ReadOnlyField(source='compra_asociada.numero_orden')
+
+    class Meta:
+        model = MovimientoInventario
         fields = '__all__'
