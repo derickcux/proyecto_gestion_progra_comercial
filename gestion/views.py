@@ -100,7 +100,7 @@ def eliminar_proveedor(request, id):
     return redirect('lista_proveedores')
 
 #categorias
-@solo_administrador
+@login_required
 def lista_categorias(request):
     categorias = Categoria.objects.all()
     return render(request, 'categoria/lista.html', {'categorias': categorias})
@@ -139,7 +139,7 @@ def eliminar_categoria(request, id):
     return redirect('lista_categorias')
 
 #productos
-@solo_administrador
+@login_required
 def lista_productos(request):
     productos = Producto.objects.all()
     return render(request, 'producto/lista.html', {'productos': productos})
