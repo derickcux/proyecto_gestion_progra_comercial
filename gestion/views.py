@@ -1,29 +1,29 @@
 from django.contrib.auth.decorators import login_required, permission_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cliente, Proveedor, Producto, Categoria, Venta, DetalleVenta, Compra, DetalleCompra, MovimientoInventario
 from .forms import ClienteForm, ProveedorForm, ProductoForm, CategoriaForm, VentaForm, DetalleVentaForm, CompraForm, DetalleCompraForm
 from django.db.models import Sum
 from django.contrib import messages
-from django.shortcuts import render, redirect, get_object_or_404
-from xhtml2pdf import pisa
 import csv
 from django.http import HttpResponse
 from django.template.loader import get_template
 from .filters import VentaFilter, CompraFilter, InventarioFilter
 from django.db.models.functions import TruncMonth
-from django.db.models import Count, Sum
+from django.db.models import Count
 import json
+from .decorators import grupo_requerido, solo_administrador, solo_vendedor, solo_comprador, administrador_o_vendedor, administrador_o_comprador
+from .pdf_generator import generar_pdf_ventas, generar_pdf_compras, generar_pdf_inventario
 
 @login_required
 def inicio(request):
     return render(request, 'inicio.html')
 
-@login_required
+@solo_administrador
 def lista_clientes(request):
     clientes = Cliente.objects.all()
     return render(request, 'cliente/lista.html', {'clientes': clientes})
 
-@login_required
+@solo_administrador
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
@@ -36,10 +36,10 @@ def crear_cliente(request):
 
     return render(request, 'cliente/form.html', {'form': form})
 
-@login_required
+@solo_administrador
 def editar_cliente(request, id):
     cliente = get_object_or_404(Cliente, id=id)
-    
+
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente) #instance carga los datos previos
         if form.is_valid():
@@ -51,22 +51,22 @@ def editar_cliente(request, id):
 
     return render(request, 'cliente/form.html', {'form': form})
 
-@login_required
+@solo_administrador
 def eliminar_cliente(request, id):
     cliente = get_object_or_404(Cliente, id=id)
-    
+
     if request.method == 'POST':
         cliente.delete()
         messages.success(request, 'Cliente eliminado correctamente.')
-    
+
     return redirect('lista_clientes') #cargar el formulario con los datos del cliente
 
-@login_required
+@administrador_o_comprador
 def lista_proveedores(request):
     proveedores = Proveedor.objects.all()
     return render(request, 'proveedor/llista.html', {'proveedores': proveedores})
 
-@login_required
+@administrador_o_comprador
 def crear_proveedor(request):
     if request.method == 'POST':
         form = ProveedorForm(request.POST)
@@ -78,7 +78,7 @@ def crear_proveedor(request):
         form = ProveedorForm()
     return render(request, 'proveedor/form.html', {'form': form})
 
-@login_required
+@administrador_o_comprador
 def editar_proveedor(request, id):
     proveedor = get_object_or_404(Proveedor, id=id)
     if request.method == 'POST':
@@ -91,7 +91,7 @@ def editar_proveedor(request, id):
         form = ProveedorForm(instance=proveedor)
     return render(request, 'proveedor/form.html', {'form': form})
 
-@login_required
+@administrador_o_comprador
 def eliminar_proveedor(request, id):
     proveedor = get_object_or_404(Proveedor, id=id)
     if request.method == 'POST':
@@ -105,7 +105,7 @@ def lista_categorias(request):
     categorias = Categoria.objects.all()
     return render(request, 'categoria/lista.html', {'categorias': categorias})
 
-@login_required
+@solo_administrador
 def crear_categoria(request):
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
@@ -117,6 +117,7 @@ def crear_categoria(request):
         form = CategoriaForm()
     return render(request, 'categoria/form.html', {'form': form})
 
+@solo_administrador
 def editar_categoria(request, id):
     categoria = get_object_or_404(Categoria, id=id)
     if request.method == 'POST':
@@ -129,7 +130,7 @@ def editar_categoria(request, id):
         form = CategoriaForm(instance=categoria)
     return render(request, 'categoria/form.html', {'form': form})
 
-@login_required
+@solo_administrador
 def eliminar_categoria(request, id):
     categoria = get_object_or_404(Categoria, id=id)
     if request.method == 'POST':
@@ -143,7 +144,7 @@ def lista_productos(request):
     productos = Producto.objects.all()
     return render(request, 'producto/lista.html', {'productos': productos})
 
-@login_required
+@solo_administrador
 def crear_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST)
@@ -155,7 +156,7 @@ def crear_producto(request):
         form = ProductoForm()
     return render(request, 'producto/form.html', {'form': form})
 
-@login_required
+@solo_administrador
 def editar_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
     if request.method == 'POST':
@@ -168,8 +169,7 @@ def editar_producto(request, id):
         form = ProductoForm(instance=producto)
     return render(request, 'producto/form.html', {'form': form})
 
-@login_required
-@permission_required('gestion.delete_producto', raise_exception=True)
+@solo_administrador
 def eliminar_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
     if request.method == 'POST':
@@ -178,12 +178,12 @@ def eliminar_producto(request, id):
     return redirect('lista_productos')
 
 #gestion de ventas
-@login_required
+@solo_vendedor
 def lista_ventas(request):
     ventas = Venta.objects.all().order_by('-fecha') #las mas recientes primero
     return render(request, 'venta/lista.html', {'ventas': ventas})
 
-@login_required
+@solo_vendedor
 def crear_venta(request):
     if request.method == 'POST':
         form = VentaForm(request.POST)
@@ -200,25 +200,25 @@ def crear_venta(request):
         form = VentaForm()
     return render(request, 'venta/form.html', {'form': form})
 
-@login_required
+@solo_vendedor
 def detalle_venta(request, id):
     venta = get_object_or_404(Venta, id=id)
     detalles = DetalleVenta.objects.filter(venta=venta)
-    
+
     #recalcular total de la venta en la pagina
     total = 0
     for d in detalles:
         total += d.subtotal()
-    
+
     if request.method == 'POST':
         form = DetalleVentaForm(request.POST)
         if form.is_valid():
             producto_seleccionado = form.cleaned_data['producto']
             cantidad_ingresada = form.cleaned_data['cantidad']
-            
+
             #buscar si el producto ya existe en los detalles de la venta
             detalle_existente = DetalleVenta.objects.filter(venta=venta, producto=producto_seleccionado).first()
-            
+
             if detalle_existente:
                 #si existe, solo sumar la cantidad y actualizar precio
                 detalle_existente.cantidad += cantidad_ingresada
@@ -232,7 +232,7 @@ def detalle_venta(request, id):
                 detalle.precio_unitario = producto_seleccionado.precio_venta
                 detalle.save()
                 messages.success(request, 'Producto agregado.')
-            
+
             #recalcular total de la cabecera (venta)
             #esto es importante hacerlo después de guardar/actualizar
             nuevos_detalles = DetalleVenta.objects.filter(venta=venta)
@@ -241,25 +241,25 @@ def detalle_venta(request, id):
                 nuevo_total += d.subtotal()
             venta.total = nuevo_total
             venta.save()
-            
+
             return redirect('detalle_venta', id=id)
     else:
         form = DetalleVentaForm()
 
     return render(request, 'venta/detalle.html', {
-        'venta': venta, 
-        'detalles': detalles, 
+        'venta': venta,
+        'detalles': detalles,
         'form': form,
         'total': total
     })
 
-@login_required
+@solo_vendedor
 def finalizar_venta(request, id):
     venta = get_object_or_404(Venta, id=id)
-    
+
     if venta.estado == 'pendiente':
         detalles = DetalleVenta.objects.filter(venta=venta)
-        
+
         # Validación de stock... (tu código existente sigue igual)
         for detalle in detalles:
             if detalle.producto.cantidad < detalle.cantidad:
@@ -271,7 +271,7 @@ def finalizar_venta(request, id):
             producto = detalle.producto
             producto.cantidad -= detalle.cantidad
             producto.save()
-            
+
             MovimientoInventario.objects.create(
                 tipo='salida',
                 producto=producto,
@@ -283,45 +283,46 @@ def finalizar_venta(request, id):
         venta.estado = 'completado'
         venta.save()
         messages.success(request, 'Venta finalizada, stock actualizado y movimiento registrado.')
-        
+
     return redirect('lista_ventas')
 
-@login_required
+@solo_vendedor
 def eliminar_detalle_venta(request, id):
     detalle = get_object_or_404(DetalleVenta, id=id)
     venta = detalle.venta #guardar la referencia de la venta antes de eliminar
     detalle.delete()
-    
+
     #recalcular el total de la venta
     detalles_restantes = DetalleVenta.objects.filter(venta=venta)
     nuevo_total = 0
     for d in detalles_restantes:
         nuevo_total += d.subtotal()
-    
+
     venta.total = nuevo_total
     venta.save()
 
     messages.warning(request, 'Producto eliminado. Total actualizado.')
     return redirect('detalle_venta', id=venta.id)
 
-@login_required
+@solo_vendedor
 def cancelar_venta(request, id):
     venta = get_object_or_404(Venta, id=id)
-    
+
     #solo se permite cancelar si no está completada
     if venta.estado == 'pendiente':
         venta.estado = 'cancelado'
         venta.save()
         messages.error(request, 'Venta cancelada exitosamente.')
-    
+
     return redirect('lista_ventas')
 
 #gestion de compras
-@login_required
+@solo_comprador
 def lista_compras(request):
     compras = Compra.objects.all().order_by('-fecha')
     return render(request, 'compra/lista.html', {'compras': compras})
 
+@solo_comprador
 def crear_compra(request):
     if request.method == 'POST':
         form = CompraForm(request.POST)
@@ -336,29 +337,29 @@ def crear_compra(request):
         form = CompraForm()
     return render(request, 'compra/form.html', {'form': form})
 
-@login_required
+@solo_comprador
 def detalle_compra(request, id):
     compra = get_object_or_404(Compra, id=id)
     detalles = DetalleCompra.objects.filter(compra=compra)
-    
+
     #recalcular en total en la pagina
     total = 0
     for d in detalles:
         total += (d.cantidad * d.costo_unitario)
-    
+
     if request.method == 'POST':
         form = DetalleCompraForm(request.POST)
-        
+
         #al recibir datos, se filtra para validar que no se mande un producto de otro proveedor
         form.fields['producto'].queryset = Producto.objects.filter(proveedor=compra.proveedor)
-        
+
         if form.is_valid():
             producto_seleccionado = form.cleaned_data['producto']
             cantidad_ingresada = form.cleaned_data['cantidad']
             costo_ingresado = form.cleaned_data['costo_unitario']
-            
+
             detalle_existente = DetalleCompra.objects.filter(compra=compra, producto=producto_seleccionado).first()
-            
+
             if detalle_existente:
                 detalle_existente.cantidad += cantidad_ingresada
                 detalle_existente.costo_unitario = costo_ingresado
@@ -369,7 +370,7 @@ def detalle_compra(request, id):
                 detalle.compra = compra
                 detalle.save()
                 messages.success(request, 'Producto agregado a la orden.')
-            
+
             #Actualizar total
             nuevos_detalles = DetalleCompra.objects.filter(compra=compra)
             nuevo_total = 0
@@ -377,34 +378,34 @@ def detalle_compra(request, id):
                 nuevo_total += (d.cantidad * d.costo_unitario)
             compra.total = nuevo_total
             compra.save()
-            
+
             return redirect('detalle_compra', id=id)
     else:
         form = DetalleCompraForm()
-        
+
     form.fields['producto'].queryset = Producto.objects.filter(proveedor=compra.proveedor)
 
     return render(request, 'compra/detalle.html', {
-        'compra': compra, 
-        'detalles': detalles, 
+        'compra': compra,
+        'detalles': detalles,
         'form': form,
         'total': total
     })
 
-@login_required
+@solo_comprador
 def finalizar_compra(request, id):
     compra = get_object_or_404(Compra, id=id)
     if compra.estado == 'pendiente':
         compra.estado = 'recibida'
         compra.save()
-        
+
         detalles = DetalleCompra.objects.filter(compra=compra)
         for detalle in detalles:
             producto = detalle.producto
             producto.cantidad += detalle.cantidad
             producto.precio_compra = detalle.costo_unitario
             producto.save()
-            
+
             #guardar en el historial de movimientos
             MovimientoInventario.objects.create(
                 tipo='entrada',
@@ -413,16 +414,16 @@ def finalizar_compra(request, id):
                 compra_asociada=compra
             )
             # --------------------------------------
-            
+
         messages.success(request, 'Compra recibida y movimientos registrados.')
     return redirect('lista_compras')
 
-@login_required
+@solo_comprador
 def eliminar_detalle_compra(request, id):
     detalle = get_object_or_404(DetalleCompra, id=id)
     compra = detalle.compra
     detalle.delete()
-    
+
     # Recalcular total
     detalles_restantes = DetalleCompra.objects.filter(compra=compra)
     nuevo_total = 0
@@ -434,6 +435,7 @@ def eliminar_detalle_compra(request, id):
     messages.warning(request, 'Producto eliminado de la orden.')
     return redirect('detalle_compra', id=compra.id)
 
+@solo_comprador
 def cancelar_compra(request, id):
     compra = get_object_or_404(Compra, id=id)
     if compra.estado == 'pendiente':
@@ -459,9 +461,9 @@ def reporte_ventas(request):
             writer.writerow([v.numero_pedido, v.fecha.strftime("%d/%m/%Y"), v.cliente.nombre, v.total, v.get_estado_display()])
         return response
 
-    # EXPORTAR A PDF
+    # EXPORTAR A PDF (usando ReportLab, compatible con Railway)
     if request.GET.get('export') == 'pdf':
-        return render_pdf_view('reportes/pdf_template.html', {'titulo': 'Reporte de Ventas', 'data': data, 'tipo': 'venta'})
+        return generar_pdf_ventas(data, 'Reporte de Ventas')
 
     return render(request, 'reportes/ventas.html', {'filtro': filtro, 'ventas': data})
 
@@ -480,8 +482,9 @@ def reporte_compras(request):
             writer.writerow([c.numero_orden, c.fecha.strftime("%d/%m/%Y"), c.proveedor.empresa, c.total, c.get_estado_display()])
         return response
 
+    # EXPORTAR A PDF (usando ReportLab, compatible con Railway)
     if request.GET.get('export') == 'pdf':
-        return render_pdf_view('reportes/pdf_template.html', {'titulo': 'Reporte de Compras', 'data': data, 'tipo': 'compra'})
+        return generar_pdf_compras(data, 'Reporte de Compras')
 
     return render(request, 'reportes/compras.html', {'filtro': filtro, 'compras': data})
 
@@ -500,21 +503,11 @@ def reporte_inventario(request):
             writer.writerow([p.codigo, p.nombre, p.categoria.nombre, p.cantidad, p.precio_venta])
         return response
 
+    # EXPORTAR A PDF (usando ReportLab, compatible con Railway)
     if request.GET.get('export') == 'pdf':
-        return render_pdf_view('reportes/pdf_template.html', {'titulo': 'Reporte de Inventario', 'data': data, 'tipo': 'inventario'})
+        return generar_pdf_inventario(data, 'Reporte de Inventario')
 
     return render(request, 'reportes/inventario.html', {'filtro': filtro, 'productos': data})
-
-@login_required
-def render_pdf_view(template_src, context_dict):
-    template = get_template(template_src)
-    html  = template.render(context_dict)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reporte.pdf"'
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    if pisa_status.err:
-        return HttpResponse('Tuvimos errores <pre>' + html + '</pre>')
-    return response
 
 #inicio
 @login_required
