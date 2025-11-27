@@ -14,7 +14,6 @@ from datetime import datetime
 
 
 class PDFReporter:
-    """Generador de reportes en PDF con ReportLab."""
 
     def __init__(self, titulo, tipo_reporte):
         self.titulo = titulo
@@ -24,7 +23,6 @@ class PDFReporter:
         self.styles = getSampleStyleSheet()
 
     def _get_title_style(self):
-        """Retorna el estilo personalizado para títulos."""
         return ParagraphStyle(
             'CustomTitle',
             parent=self.styles['Heading1'],
@@ -34,7 +32,6 @@ class PDFReporter:
         )
 
     def _get_fecha_style(self):
-        """Retorna el estilo personalizado para fechas."""
         return ParagraphStyle(
             'Fecha',
             parent=self.styles['Normal'],
@@ -43,7 +40,6 @@ class PDFReporter:
         )
 
     def _crear_tabla(self, table_data, col_widths):
-        """Crea una tabla con estilos aplicados."""
         table = Table(table_data, colWidths=col_widths)
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f4788')),
@@ -61,7 +57,6 @@ class PDFReporter:
         return table
 
     def generar_reporte_ventas(self, data):
-        """Genera PDF de reporte de ventas."""
         doc = SimpleDocTemplate(self.buffer, pagesize=self.pagesize)
         elements = []
 
@@ -85,13 +80,13 @@ class PDFReporter:
                 venta.numero_pedido,
                 venta.fecha.strftime("%d/%m/%Y"),
                 venta.cliente.nombre,
-                f"${venta.total:,.2f}",
+                f"Q{venta.total:,.2f}",
                 venta.get_estado_display()
             ])
             total_ventas += venta.total
 
         # Agregar fila de total
-        table_data.append(['', '', 'TOTAL:', f"${total_ventas:,.2f}", ''])
+        table_data.append(['', '', 'TOTAL:', f"Q{total_ventas:,.2f}", ''])
 
         # Crear tabla
         table = self._crear_tabla(table_data, [1.2*inch, 1.2*inch, 2*inch, 1*inch, 1.2*inch])
@@ -103,7 +98,6 @@ class PDFReporter:
         return self.buffer
 
     def generar_reporte_compras(self, data):
-        """Genera PDF de reporte de compras."""
         doc = SimpleDocTemplate(self.buffer, pagesize=self.pagesize)
         elements = []
 
@@ -127,13 +121,13 @@ class PDFReporter:
                 compra.numero_orden,
                 compra.fecha.strftime("%d/%m/%Y"),
                 compra.proveedor.empresa,
-                f"${compra.total:,.2f}",
+                f"Q{compra.total:,.2f}",
                 compra.get_estado_display()
             ])
             total_compras += compra.total
 
         # Agregar fila de total
-        table_data.append(['', '', 'TOTAL:', f"${total_compras:,.2f}", ''])
+        table_data.append(['', '', 'TOTAL:', f"Q{total_compras:,.2f}", ''])
 
         # Crear tabla
         table = self._crear_tabla(table_data, [1.2*inch, 1.2*inch, 2*inch, 1*inch, 1.2*inch])
@@ -145,7 +139,6 @@ class PDFReporter:
         return self.buffer
 
     def generar_reporte_inventario(self, data):
-        """Genera PDF de reporte de inventario."""
         doc = SimpleDocTemplate(self.buffer, pagesize=self.pagesize)
         elements = []
 
@@ -171,13 +164,13 @@ class PDFReporter:
                 producto.nombre[:25],  # Limitar longitud
                 producto.categoria.nombre,
                 str(producto.cantidad),
-                f"${producto.precio_venta:,.2f}"
+                f"Q{producto.precio_venta:,.2f}"
             ])
             stock_total += producto.cantidad
             valor_total += (producto.cantidad * producto.precio_venta)
 
         # Agregar filas de resumen
-        table_data.append(['', '', 'TOTALES:', f"{stock_total} unidades", f"${valor_total:,.2f}"])
+        table_data.append(['', '', 'TOTALES:', f"{stock_total} unidades", f"Q{valor_total:,.2f}"])
 
         # Crear tabla
         table = self._crear_tabla(table_data, [1*inch, 2.5*inch, 1.5*inch, 0.8*inch, 1.2*inch])
@@ -189,7 +182,6 @@ class PDFReporter:
         return self.buffer
 
     def obtener_response(self, filename='reporte.pdf'):
-        """Retorna una HttpResponse con el PDF generado."""
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response.write(self.buffer.getvalue())
@@ -197,21 +189,18 @@ class PDFReporter:
 
 
 def generar_pdf_ventas(data, titulo='Reporte de Ventas'):
-    """Función auxiliar para generar PDF de ventas."""
     reporter = PDFReporter(titulo, 'venta')
     reporter.generar_reporte_ventas(data)
     return reporter.obtener_response(filename='reporte_ventas.pdf')
 
 
 def generar_pdf_compras(data, titulo='Reporte de Compras'):
-    """Función auxiliar para generar PDF de compras."""
     reporter = PDFReporter(titulo, 'compra')
     reporter.generar_reporte_compras(data)
     return reporter.obtener_response(filename='reporte_compras.pdf')
 
 
 def generar_pdf_inventario(data, titulo='Reporte de Inventario'):
-    """Función auxiliar para generar PDF de inventario."""
     reporter = PDFReporter(titulo, 'inventario')
     reporter.generar_reporte_inventario(data)
     return reporter.obtener_response(filename='reporte_inventario.pdf')

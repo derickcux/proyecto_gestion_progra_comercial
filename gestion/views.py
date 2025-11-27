@@ -509,6 +509,12 @@ def reporte_inventario(request):
 
     return render(request, 'reportes/inventario.html', {'filtro': filtro, 'productos': data})
 
+#movimientos de inventario
+@login_required
+def movimientos_inventario(request):
+    movimientos = MovimientoInventario.objects.all().order_by('-fecha')
+    return render(request, 'reportes/movimientos.html', {'movimientos': movimientos})
+
 #inicio
 @login_required
 def dashboard(request):

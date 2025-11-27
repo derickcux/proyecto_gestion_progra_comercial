@@ -12,6 +12,12 @@ router.register(r'ventas', api_views.VentaViewSet)
 router.register(r'compras', api_views.CompraViewSet)
 router.register(r'movimientos', api_views.MovimientoViewSet)
 
+# Endpoint de autenticación
+api_patterns = [
+    path('login/', api_views.LoginView.as_view(), name='api_login'),
+    path('', include(router.urls)),
+]
+
 urlpatterns = [
     path('', views.inicio, name='inicio'),
 
@@ -59,10 +65,11 @@ urlpatterns = [
     path('reportes/ventas/', views.reporte_ventas, name='reporte_ventas'),
     path('reportes/compras/', views.reporte_compras, name='reporte_compras'),
     path('reportes/inventario/', views.reporte_inventario, name='reporte_inventario'),
+    path('reportes/movimientos/', views.movimientos_inventario, name='movimientos_inventario'),
 
     #dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
 
     #API REST
-    path('api/', include(router.urls)),
+    path('api/', include(api_patterns)),
 ]
