@@ -60,6 +60,7 @@ urlpatterns = [
     path('compras/finalizar/<int:id>/', views.finalizar_compra, name='finalizar_compra'),
     path('compras/eliminar-item/<int:id>/', views.eliminar_detalle_compra, name='eliminar_detalle_compra'),
     path('compras/cancelar/<int:id>/', views.cancelar_compra, name='cancelar_compra'),
+    path('api/producto/<int:producto_id>/precio/', views.obtener_precio_producto, name='obtener_precio_producto'),
 
     #reportes
     path('reportes/ventas/', views.reporte_ventas, name='reporte_ventas'),

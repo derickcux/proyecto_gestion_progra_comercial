@@ -5,7 +5,7 @@ from .forms import ClienteForm, ProveedorForm, ProductoForm, CategoriaForm, Vent
 from django.db.models import Sum
 from django.contrib import messages
 import csv
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from .filters import VentaFilter, CompraFilter, InventarioFilter
 from django.db.models.functions import TruncMonth
@@ -548,3 +548,17 @@ def dashboard(request):
         'prod_data': json.dumps(prod_data),
     }
     return render(request, 'dashboard.html', context)
+
+@login_required
+def obtener_precio_producto(request, producto_id):
+    try:
+        producto = Producto.objects.get(id=producto_id)
+        return JsonResponse({
+            'precio_compra': float(producto.precio_compra),
+            'success': True
+        })
+    except Producto.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Producto no encontrado'
+        }, status=404)

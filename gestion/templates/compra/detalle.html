@@ -105,4 +105,31 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productoSelect = document.querySelector('select[name="producto"]');
+    const costoUnitarioInput = document.querySelector('input[name="costo_unitario"]');
+
+    if (productoSelect && costoUnitarioInput) {
+        productoSelect.addEventListener('change', function() {
+            const productoId = this.value;
+
+            if (productoId) {
+                fetch(`/api/producto/${productoId}/precio/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            costoUnitarioInput.value = parseFloat(data.precio_compra).toFixed(2);
+                            costoUnitarioInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    })
+                    .catch(error => console.error('Error al obtener precio:', error));
+            } else {
+                costoUnitarioInput.value = '';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
