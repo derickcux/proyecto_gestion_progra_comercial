@@ -150,14 +150,9 @@ def main():
         # Crear grupos
         crear_grupos()
 
-        # Preguntar si desea crear usuarios demo
-        crear_demo = input("\n¿Deseas crear usuarios de demostración? (s/n): ").lower()
-
-        if crear_demo == 's':
-            crear_usuarios_demo()
-            mostrar_credenciales()
-        else:
-            print("\nOmitiendo creación de usuarios de demostración.")
+        # Crear usuarios de demostración
+        crear_usuarios_demo()
+        mostrar_credenciales()
 
         print("\n✓ Setup inicial completado exitosamente")
         print("\nProximos pasos:")
